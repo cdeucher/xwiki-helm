@@ -26,20 +26,17 @@ minikube addons enable ingress
 * Install chart
 
 ```bash
-git clone https://github.com/xwiki-contrib/xwiki-helm
-cd xwiki-helm-chart
+cd xwiki-helm
 helm dependency update
 helm --debug upgrade -i --force xwiki -f ./values.yaml .
 ```
 
 ## Usage
 
-Get ip address of minikube 
-
 ```bash
-ip=$(minikube ip)
-curl $ip
+kubectl port-forward svc/xwiki-xwiki 80
 ```
+URL: `http://localhost`
 
 ## Test
 

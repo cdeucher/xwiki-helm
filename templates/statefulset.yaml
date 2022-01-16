@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ template "xwiki.fullname" . }}
   labels:
@@ -7,9 +7,8 @@ metadata:
     version: {{ .Values.image.wikiversion }}
     {{- include "xwiki.standard-labels-no-app" . | nindent 4 }}
 spec:
+  serviceName: {{ template "xwiki.fullname" . }}
   replicas: {{ .Values.replicaCount }}
-  strategy: 
-    type: {{ .Values.deployStrategy }}
   selector:
     matchLabels:
       app: {{ template "xwiki.fullname" . }} # has to match .spec.template.metadata.labels
@@ -78,12 +77,6 @@ spec:
           mountPath: /usr/local/xwiki/data/xwiki.properties
           subPath: xwiki.properties
       volumes:
-      - name: xwiki-solr-data
-        persistentVolumeClaim:
-          claimName: xwiki-solr
-      - name: xwiki-data
-        persistentVolumeClaim:
-          claimName: xwiki
       - name: xwiki-tomcat-conf
         configMap:
           name: xwiki-tomcat-conf
@@ -102,36 +95,26 @@ spec:
           items:
           - key: xwiki.properties
             path: xwiki.properties
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: xwiki
-  labels:
-    {{- include "xwiki.standard-labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - {{.Values.storageAccessMode}}
-  resources:
-    requests:
-      storage: {{ .Values.storage }}
-    {{- if .Values.storageClass }}
-    storageClassName: {{ .Values.storageClass | quote }}
-    {{- end }}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: xwiki-solr
-  labels:
-    {{- include "xwiki.standard-labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - {{ .Values.solr.storageAccessMode}}
-  resources:
-    requests:
-      storage: {{ .Values.solr.storage }}
-    {{- if .Values.storageClass }}
-    storageClassName: {{ .Values.storageClass | quote }}
-    {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: xwiki-data
+      spec:
+        accessModes:
+          - {{.Values.storageAccessMode}}
+        {{- if .Values.storageClass }}
+        storageClassName: {{ .Values.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.storage }}
+    - metadata:
+        name: xwiki-solr-data
+      spec:
+        accessModes:
+          - {{.Values.solr.storageAccessMode}}
+        {{- if .Values.storageClass }}
+        storageClassName: {{ .Values.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.solr.storage }}

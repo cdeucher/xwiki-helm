@@ -11,7 +11,7 @@ image:
 service:
   portName: node
   name: http
-  type: LoadBalancer
+  type: ClusterIP
   externalPort: 80
   internalPort: 8080
 resources:
@@ -52,11 +52,13 @@ mysql:
 ## https://github.com/bitnami/charts/tree/master/bitnami/mariadb
 mariadb:
  ## Whether to deploy a mariadb server
-  enabled: false
+  enabled: true
   auth:
-    rootPassword: xwiki
+    ## echo "xwiki" | base64
+    rootPassword: eHdpa2kK
     username: xwiki
-    password: xwiki
+    ## echo "xwiki" | base64
+    password: eHdpa2kK
     database: xwiki
   persistence:
     size: 20Gi
@@ -128,7 +130,7 @@ solr:
   host: localhost
   port: 8983
   storage: 8Gi
-  storageAccessMode: ReadWriteOnce
+  storageAccessMode: "ReadWriteOnce"
 
 # To use ingress for routing set ingress.enabled value to true and istio.enabled value to false
 ingress:
